@@ -5,10 +5,7 @@ figure();
 plot(0,0,'o');
 hold on;
 %plot RCH
-for i = 1:K
-  [x y] = pol2cart(2*pi/K*(i-1),Rt);
-  plot(x,y,'o');
-end
+
 
 for i = 1:num_CH
     pos = network(i).pos;

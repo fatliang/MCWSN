@@ -1,6 +1,6 @@
 %network
 %parameters
-d = 400; %the radius of the whole area
+d = 300; %the radius of the whole area
 Rc = 30; %the communication range of CH, which is also the distribution interval of CHs
 rc = 15; %the communication range of node
 beta = 2; %the fading coefficient
@@ -36,7 +36,7 @@ for i = 1:num_layer
   end
   
 end
-
+drawNetwork(network);
 
 %record the indices of the CH in each layer
 ind_CH = zeros(sum(num_CH),num_layer);
@@ -115,7 +115,7 @@ for i = (dest_layer_outer+1):num_layer
 end
 
 
-drawNetwork(network,K,Rt);
+
 
 
 
