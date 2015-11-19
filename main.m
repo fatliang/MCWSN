@@ -5,12 +5,13 @@ Rc = 30; %the communication range of CH, which is also the distribution interval
 rc = 15; %the communication range of node
 beta = 2; %the fading coefficient
 gamma = 5; %the transmission threshold, in dB
+SNR = 8; %the SNR, in dB
 Nintf = 2; %the CSMA sensing range is Nintf*Rc, remark: it should be higher when beta = 2
 rou_CH = 0.0014; %the density of CH
 K = 6;%the number of RCHs
 Ro = 0.366*d; %the coverage radius of CCH
 Rt = 0.233*K*sin(pi/K)*d; %the radius of RCH
-Pr_t = 0.9; % the probability of successful transmission; TODO
+Pr_t = exp(-10^((gamma-SNR)/10)); % the probability of successful transmission; TODO
 
 %first generate the CHs
 %the number of layers
@@ -114,7 +115,82 @@ for i = 2:num_level_RCH
     end
 end
 
+network = addIntf(network,Rc,Nintf);
+network = initNet(network);
 drawNetwork(network,K,Rt);
+
+
+%real simulation
+num_rounds = 1000;
+received_CCH = zeros(length(network),1);
+received_RCH = zeros(length(network),K);
+
+wait_time_av = zeros(length(network),1);
+for i = 1:length(network)
+   wait_time_av(i) = network(i).wait_time; 
+end
+
+for i = 1:num_rounds
+    %first the CSMA phase
+    %generate the waiting time
+    trans_CH = [];
+    wait_time = exprnd(wait_time_av);
+    [time_min ind_min] = min(wait_time);
+    
+    while time_min < inf
+      %then ind_min transmits
+      network(ind_min).silent = 0;
+      trans_CH = [trans_CH ind_min];
+      wait_time(ind_min) = inf;
+      CH_tmp = network(ind_min);
+      %make other interfering CHs silent
+      for j = 1:length(CH_tmp.intf)
+          wait_time(CH_tmp.intf(j)) = inf;
+          network(CH_tmp.intf(j)).silent = 1;
+      end
+      [time_min ind_min] = min(wait_time);
+    end
+    
+    %start to transmit
+    for j = 1:length(trans_CH)
+      %deque first packet in its queue
+      ind_trans = trans_CH(j);
+      packet = network(ind_trans).queue(1);
+      network(ind_trans).queue(1) = [];
+      
+      if packet == ind_trans
+        network(ind_trans).queue = [network(ind_trans).queue ind_trans];
+      end
+      
+      %try whether the packet transmitted successfully
+      prob_test = rand(1);
+      if prob_test > Pr_t
+        %fail in this case
+        continue;
+      end
+      
+      ind_next = network(ind_trans).next_hop;
+      
+      if ind_next ~= 0
+        network(ind_next).queue = [network(ind_next).queue packet];
+      elseif network(ind_trans).dest == 0
+        received_CCH(packet) = received_CCH(packet)+1; 
+      else
+        received_RCH(packet,network(ind_trans).dest) = received_RCH(packet,network(ind_trans).dest)+1;            
+      end
+      
+    end
+    
+    for i = 1:length(network)
+      wait_time_av(i) = network(i).wait_time/length(unique(network(i).queue)); 
+    end
+end
+
+%calculate the throughput
+received_all = received_CCH+sum(received_RCH,2);
+throughput = mean(received_all)/num_rounds;
+
+
 
 
 

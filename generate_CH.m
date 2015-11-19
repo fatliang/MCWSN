@@ -13,11 +13,11 @@ res.no = no;
 res.bFlag = bFlag;
 res.queue = [];
 res.next_hop = 0;
-res.interfere = [];
+res.intf = [];
 res.carry = [];
 
 %the running parameter
-res.wait_time = 0;
+res.wait_time = 0;%the average waiting time of exponential distribution
 res.silent = 0;
 
 
