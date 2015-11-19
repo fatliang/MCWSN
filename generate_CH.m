@@ -1,4 +1,4 @@
-function res = generate_CH(pos,layer,no,bFlag)
+function res = generate_CH(pos,dest,level,no,bFlag)
 %generate a CH, where pos is its position, bFlag indicates whether it is
 %a RCH/CCH or general CH
 
@@ -7,7 +7,8 @@ function res = generate_CH(pos,layer,no,bFlag)
 %next hop, the nodes that it will interfere, the nodes that it will relay
 %to the destination
 res.pos = pos;
-res.layer = layer;
+res.dest = dest; %0 for CCH, positive integers for RCHs
+res.level = level;
 res.no = no;
 res.bFlag = bFlag;
 res.queue = [];

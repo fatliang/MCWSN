@@ -18,6 +18,10 @@ num_layer = floor(d/Rc);
 %the number of CHs per layer
 num_CH = zeros(1,num_layer);
 network = [];
+%record the maximal level of CCH and RCH
+num_level_CCH = 0;
+num_level_RCH = 0;
+
 for i = 1:num_layer
   %first the area of current layer
   S_cur = ((i+0.5)^2-(i-0.5)^2)*pi*Rc^2;
@@ -31,30 +35,50 @@ for i = 1:num_layer
     x = x + sqrt(5)*randn(1);
     y = y + sqrt(5)*randn(1);
     [sita r] = cart2pol(x,y);
-    newCH = generate_CH([sita r],i,length(network)+1,0);
+    if r > Ro
+      [dest, level] = cal_RCH_level(sita,r,K,Rc,Rt);
+      newCH = generate_CH([sita r],dest,level,length(network)+1,0);
+      if level > num_level_RCH
+        num_level_RCH = level;
+      end
+    else
+      newCH = generate_CH([sita r],0,i,length(network)+1,0);
+      if i > num_level_CCH
+        num_level_CCH = i;
+      end
+    end
     network = [network, newCH];
   end
-  
 end
 
 
-%record the indices of the CH in each layer
-ind_CH = zeros(sum(num_CH),num_layer);
+%record the indices of the CH in each level of CCH
+ind_CCH = zeros(sum(num_CH),num_level_CCH);
 for i = 1:length(network)
   CH_tmp = network(i);
-  ind_CH(CH_tmp.no,CH_tmp.layer) = 1;
+  if CH_tmp.dest == 0
+    ind_CCH(CH_tmp.no,CH_tmp.level) = 1;
+  end
 end
+ind_CCH = logical(ind_CCH);
 
-ind_CH = logical(ind_CH);
+%record the indices of the CHs in each level of RCH
+ind_RCH = zeros(sum(num_CH),num_level_RCH);
+for i = 1:length(network)
+  CH_tmp = network(i);
+  if CH_tmp.dest ~= 0
+    ind_RCH(CH_tmp.no,CH_tmp.level) = 1;
+  end
+end
+ind_RCH = logical(ind_RCH);
+
 %routing
 %first for the CHs heading to CCH
 %the nodes in each layer will route its packet to the nearest node in its
 %upper layer
-%layers heading to CCH are 1 to floor(Ro/Rc)
-
-for i = 2:floor(Ro/Rc)
-    CH_cur_layer = network(ind_CH(:,i));
-    CH_upper_layer = network(ind_CH(:,i-1));
+for i = 2:num_level_CCH
+    CH_cur_layer = network(ind_CCH(:,i));
+    CH_upper_layer = network(ind_CCH(:,i-1));
     for j = 1:length(CH_cur_layer)
       dist_min = 10*Rc;
       ind_min = 0;
@@ -73,47 +97,22 @@ end
 %the position of RCHs are
 %(0,Rt),(2pi/K,Rt),(2pi/K*2,Rt),...,(2pi/K*(K-1),Rt), no need to consider
 %this?
-
-%the inner neighbor layer of RCH and the outer neighbor layer of RCH
-dest_layer_inner = floor(Rt/Rc);
-dest_layer_outer = ceil(Rt/Rc);
-
-%for layer floor(Ro/Rc)+1 to layer dest_layer_inner, they shold head out
-for i = (floor(Ro/Rc)+1):(dest_layer_inner-1)
-  CH_cur_layer = network(ind_CH(:,i));
-  CH_lower_layer = network(ind_CH(:,i+1));
-  for j = 1:length(CH_cur_layer)
-    dist_min = 10*Rc;
-    ind_min = 0;
-    for k = 1:length(CH_lower_layer)
-        dist_tmp = cal_dist(CH_cur_layer(j),CH_lower_layer(k));
-        if dist_tmp < dist_min
-            dist_min = dist_tmp;
-            ind_min = CH_lower_layer(k).no;
+for i = 2:num_level_RCH
+    CH_cur_layer = network(ind_RCH(:,i));
+    CH_upper_layer = network(ind_RCH(:,i-1));
+    for j = 1:length(CH_cur_layer)
+        dist_min = 10*Rc;
+        ind_min = 0;
+        for k = 1:length(CH_upper_layer)
+            dist_tmp = cal_dist(CH_cur_layer(j),CH_upper_layer(k));
+            if dist_tmp < dist_min
+                dist_min = dist_tmp;
+                ind_min = CH_upper_layer(k).no;
+            end
         end
+        network = add_route(network,CH_cur_layer(j).no,ind_min);
     end
-    network = add_route(network,CH_cur_layer(j).no,ind_min);
-  end
 end
-
-%for layer dest_layer_out+1 to num_layer, they should head in
-for i = (dest_layer_outer+1):num_layer
-  CH_cur_layer = network(ind_CH(:,i));
-  CH_upper_layer = network(ind_CH(:,i-1));
-  for j = 1:length(CH_cur_layer)
-      dist_min = 10*Rc;
-      ind_min = 0;
-      for k = 1:length(CH_upper_layer)
-          dist_tmp = cal_dist(CH_cur_layer(j),CH_upper_layer(k));
-          if dist_tmp < dist_min
-            dist_min = dist_tmp;
-            ind_min = CH_upper_layer(k).no;
-          end
-      end
-      network = add_route(network,CH_cur_layer(j).no,ind_min);
-  end
-end
-
 
 drawNetwork(network,K,Rt);
 
