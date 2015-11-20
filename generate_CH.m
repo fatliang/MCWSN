@@ -12,6 +12,7 @@ res.no = no;
 res.bFlag = bFlag;
 res.queue = [];
 res.next_hop = 0;
+res.pos_next = 0; %distance to next hop
 res.intf = [];
 %res.carry = [];
 

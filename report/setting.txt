@@ -1,0 +1,17 @@
+The CHs are distributed in layers w.r.t the CCH at interval of Rc. The MAC
+protocol used is an ideal CSMA, that is, when one CH doesn't sense the
+signals of other CHs within Nintf*Rc from it, it will
+send a signal and all other CHs within Nintf*Rc from it will keep silent in
+the time slot. The time spent on CSMA is omitted. In simulation, when one CH is transmitting, the other CHs which
+are transmitting at the same time will be reckoned as interferers and the
+interference and SINR are calculated at the receiver instead of an ideal
+collision free model. The rayleigh fading channel is used and the transmission
+succeeds if the SINR is above a threshold.
+To measure the throughput, I use the following way: each
+CH will have several queues, each of which stores the packets it receives from one specific CH. For the queue corresponding to its own, there
+will be infinite
+packets. Once the CH wins the competition for transmission, it will transmit
+one packet randomly from one of the non-empty queues.
+In the CSMA protocol, each CH will wait a random time before sending the
+signal. This random time is exponentially distributed and the mean is
+proportional to the inverse of the number of non-empty queues in the CH.    
