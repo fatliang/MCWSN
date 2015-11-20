@@ -4,8 +4,7 @@ function res = generate_CH(pos,dest,level,no,bFlag)
 
 %pos is in polar coordinate 
 %the properties include postion, the transmitting queue, the number of the
-%next hop, the nodes that it will interfere, the nodes that it will relay
-%to the destination
+%next hop, the nodes that it will interfere 
 res.pos = pos;
 res.dest = dest; %0 for CCH, positive integers for RCHs
 res.level = level;
@@ -14,7 +13,7 @@ res.bFlag = bFlag;
 res.queue = [];
 res.next_hop = 0;
 res.intf = [];
-res.carry = [];
+%res.carry = [];
 
 %the running parameter
 res.wait_time = 0;%the average waiting time of exponential distribution

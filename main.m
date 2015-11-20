@@ -13,6 +13,7 @@ Ro = 0.366*d; %the coverage radius of CCH
 Rt = 0.233*K*sin(pi/K)*d; %the radius of RCH
 Pr_t = exp(-10^((gamma-SNR)/10)); % the probability of successful transmission; TODO
 
+
 %first generate the CHs
 %the number of layers
 num_layer = floor(d/Rc);
@@ -121,7 +122,9 @@ drawNetwork(network,K,Rt);
 
 
 %real simulation
+CH_array = [1:length(network)];
 num_rounds = 1000;
+
 received_CCH = zeros(length(network),1);
 received_RCH = zeros(length(network),K);
 
@@ -155,11 +158,21 @@ for i = 1:num_rounds
     for j = 1:length(trans_CH)
       %deque first packet in its queue
       ind_trans = trans_CH(j);
-      packet = network(ind_trans).queue(1);
-      network(ind_trans).queue(1) = [];
       
-      if packet == ind_trans
-        network(ind_trans).queue = [network(ind_trans).queue ind_trans];
+      %randomly select the packets in queue
+      packets_wait = CH_array(network(ind_trans).queue > 0);
+      packets_wait = [packets_wait ind_trans];
+      packets_wait = packets_wait(randperm(length(packets_wait)));%random sorting
+      packet = packets_wait(1);
+      %
+           
+      if packet ~= ind_trans
+        network(ind_trans).queue(packet) = network(ind_trans).queue(packet)-1; 
+      end
+      
+      %for test
+      if sum(network(ind_trans).queue < 0) > 0
+        disp('error');
       end
       
       %try whether the packet transmitted successfully
@@ -172,7 +185,7 @@ for i = 1:num_rounds
       ind_next = network(ind_trans).next_hop;
       
       if ind_next ~= 0
-        network(ind_next).queue = [network(ind_next).queue packet];
+        network(ind_next).queue(packet) = network(ind_next).queue(packet)+1;
       elseif network(ind_trans).dest == 0
         received_CCH(packet) = received_CCH(packet)+1; 
       else
@@ -182,7 +195,7 @@ for i = 1:num_rounds
     end
     
     for i = 1:length(network)
-      wait_time_av(i) = network(i).wait_time/length(unique(network(i).queue)); 
+      wait_time_av(i) = network(i).wait_time/(1 + sum(network(i).queue > 0)); 
     end
 end
 
