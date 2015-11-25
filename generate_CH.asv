@@ -7,7 +7,7 @@ function res = generate_CH(pos,dest,level,no,bFlag)
 %next hop, the nodes that it will interfere 
 res.pos = pos;
 res.dest = dest; %0 for CCH, positive integers for RCHs
-res.dist = 0;%the equivalent distance to destination
+res.dist = 0;%
 res.level = level;
 res.no = no;
 res.bFlag = bFlag;

@@ -41,9 +41,5 @@ for i = 1:num_CH
     v_CH = [v_CH y_next-y];
     
 end
-hh = plot(x_CH,y_CH,'black.');
-hh.MarkerSize = 10;
-for i = 1:num_CH
-  quiver(x_CH(i),y_CH(i),u_CH(i),v_CH(i),'--blue');
-end
+plot(x_CH,y_CH,'black.');
 %quiver(x_CH,y_CH,u_CH,v_CH);

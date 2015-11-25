@@ -16,7 +16,7 @@ Nfreq = 1;
 pw = 10^(SNR/10)*(Rc^beta);%the transmitting power, noise power is normalized
 threshold = 10^(gamma/10);
 
-d_array = [180];
+d_array = [300];
 throughput_simul = zeros(1,length(d_array));
 throughput_theor = zeros(1,length(d_array));
 
@@ -67,7 +67,7 @@ for ind_d = 1:length(d_array)
             network = [network, newCH];
         end
     end
-    network = SPRouting(network, K, Rt, Rc, 2);
+    
     
 %     %record the indices of the CH in each level of CCH
 %     ind_CCH = zeros(sum(num_CH),num_level_CCH);
