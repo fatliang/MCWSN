@@ -16,7 +16,7 @@ Nfreq = 1;
 pw = 10^(SNR/10)*(Rc^beta);%the transmitting power, noise power is normalized
 threshold = 10^(gamma/10);
 
-d_array = [120:30:450];
+d_array = [300];
 throughput_simul = zeros(1,length(d_array));
 throughput_theor = zeros(1,length(d_array));
 
@@ -49,8 +49,8 @@ for ind_d = 1:length(d_array)
             r = i*Rc;
             x = r*cos(sita);
             y = r*sin(sita);
-            x = x + sqrt(2)*randn(1);
-            y = y + sqrt(2)*randn(1);
+            x = x + sqrt(5)*randn(1);
+            y = y + sqrt(5)*randn(1);
             [sita r] = cart2pol(x,y);
             if r > Ro
                 [dest, level] = cal_RCH_level(sita,r,K,Rc,Rt);
